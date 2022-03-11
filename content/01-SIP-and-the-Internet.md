@@ -168,6 +168,20 @@ mailto:help@example.org?Subject=Help!
 
 Common SIP and Internet Communications URL and URI schemes are listed in Table 1.1. The details of SIP and SIPs URIs are covered in Section 4.2.
 
+​     Table 1.1  URL and URI Schemes Used in Internet Communications
+
+| Scheme | Protocol                         |
+| ------ | -------------------------------- |
+| sip    | SIP                              |
+| sips   | Secure SIP (TLS)                 |
+| tel    | Telephone number and dial string |
+| im     | Instant messaging inbox          |
+| pres   | Presence                         |
+| xmpp   | Jabber IM and presence           |
+| h323   | H.323                            |
+| http   | Hypertext Tranfer Protocol       |
+| mailto | Electronic mail address          |
+
 Uniform Resource Names (URNs) are defined by [^16]. A URN provides a standard name for a resource but does not provide any information for how to access the resource. An example URN namespace is International Standard Book Numbers (ISBNs):
 
 ```ini
@@ -177,45 +191,29 @@ URN namespaces are often used to identify XML extensions.
 
 ## 1.5	Domain Name Service
 
-The Domain Name Service [17] is used on the Internet to map a symbolic name (such as www.example.com) to an IP address (such as 100.101.102.103, which is an example IPv4 address). DNS is also used to obtain information needed to route various protocol messages, including SIP messages. The use of names instead of numerical addresses is one of the Internet’s greatest strengths because it gives the Internet a human, friendly feel. Domain names are organized in a hierarchy. Each level of the name is separated by a dot, with the highest-level domain on the right side. (Note that the dots in a domain name have no correspondence to the dots in an IP address written in dotted decimal notation.) General top-level domains are shown in Table 1.2 (see http://www.icann.org/tlds for the latest list). Some such as com, net, and edu are commonly encountered, while others such as aero and coop are rare. There is also a set of country domains such as: us (United States), uk (United Kingdom), ca (Canada), and au (Australia). Each of these top-level domains has just one authority that assigns that domain to a user or group. Many new top-level domains are coming.
+The Domain Name Service [^17] is used on the Internet to map a symbolic name (such as `www.example.com`) to an IP address (such as 100.101.102.103, which is an example IPv4 address). DNS is also used to obtain information needed to route various protocol messages, including SIP messages. The use of names instead of numerical addresses is one of the Internet’s greatest strengths because it gives the Internet a human, friendly feel. Domain names are organized in a hierarchy. Each level of the name is separated by a dot, with the highest-level domain on the right side. (Note that the dots in a domain name have no correspondence to the dots in an IP address written in dotted decimal notation.) General top-level domains are shown in Table 1.2 (see `http://www.icann.org/tlds` for the latest list). Some such as com, net, and edu are commonly encountered, while others such as aero and coop are rare. There is also a set of country domains such as: us (United States), uk (United Kingdom), ca (Canada), and au (Australia). Each of these top-level domains has just one authority that assigns that domain to a user or group. Many new top-level domains are coming.
 
-Table 1.1
+​	Table 1.2 	Generic Top-Level Domains (gTLDs)
 
-URL and URI Schemes Used in Internet Communications
+| Domain | Description                 |
+| ------ | --------------------------- |
+| com    | Company                     |
+| net    | Network                     |
+| int    | Internet                    |
+| org    | Not-for-profit organization |
+| edu    | University or college       |
+| gov    | U.S. government             |
+| mil    | U.S. military               |
+| arpa   | ARPAnet                     |
+| info   | Information                 |
+| biz    | Business                    |
+| museum | Museum                      |
+| name   | Name                        |
+| pro    | Professional                |
+| aero   | Air transport industry      |
+| coop   | Cooperatives                |
 
-Scheme	Protocol
-sip	SIP
-sips	Secure SIP (TLS)
-tel	Telephone number and dial string
-im	Instant messaging inbox
-pres	Presence
-xmpp	Jabber IM and presence
-h323	H.323
-http	Hypertext Tranfer Protocol
-mailto	Electronic mail address
-Once a domain name has been assigned, the authority places a link in their DNS server to the DNS server of the user or group who has been assigned the domain. For example, when example.org is allocated to a company, the authoritative DNS server for the top-level com domain entry for example contains the IP address of the company’s DNS server(s). A name can then be further qualified by entries in the company’s DNS server to point to individual servers in their network. For example, the company’s DNS server may contain entries for www.example.com, ftp.example.com, and smtp.example.com. A number of types of DNS record types are defined. The DNS records used to resolve a host name into an IP address are called address records, or A records. Other types of records include CNAME (canonical name or alias records), MX (mail exchange records), SRV (service records, used by SIP and other protocols), and TXT (free-form text records). Another type of DNS record is a PTR, or pointer record, used for reverse lookups. Reverse lookups are used to map an IP address back to a domain name. These records can be used to generate server logs that show not only the IP addresses of clients served, but also their domain name. Web browsing provides an example of the use of the DNS system. Another type of DNS record is known as a Naming Authority Pointer (NAPTR) record that can be used by a protocol known as ENUM [18] to map global telephone numbers into Internet URLs.
-
-Table 1.2
-
-Generic Top-Level Domains (gTLDs)
-
-Domain	Description
-com	Company
-
-net	Network
-int	Internet
-org	Not-for-profit organization
-edu	University or college
-gov	U.S. government
-mil	U.S. military
-arpa	ARPAnet
-info	Information
-biz	Business
-museum	Museum
-name	Name
-pro	Professional
-aero	Air transport industry
-coop	Cooperatives
+Once a domain name has been assigned, the authority places a link in their DNS server to the DNS server of the user or group who has been assigned the domain. For example, when example.org is allocated to a company, the authoritative DNS server for the top-level com domain entry for example contains the IP address of the company’s DNS server(s). A name can then be further qualified by entries in the company’s DNS server to point to individual servers in their network. For example, the company’s DNS server may contain entries for `www.example.com`, ftp.example.com, and smtp.example.com. A number of types of DNS record types are defined. The DNS records used to resolve a host name into an IP address are called address records, or A records. Other types of records include CNAME (canonical name or alias records), MX (mail exchange records), SRV (service records, used by SIP and other protocols), and TXT (free-form text records). Another type of DNS record is a PTR, or pointer record, used for reverse lookups. Reverse lookups are used to map an IP address back to a domain name. These records can be used to generate server logs that show not only the IP addresses of clients served, but also their domain name. Web browsing provides an example of the use of the DNS system. Another type of DNS record is known as a Naming Authority Pointer (NAPTR) record that can be used by a protocol known as ENUM [^18] to map global telephone numbers into Internet URLs.
 
 ### 1.5.1	DNS Resource Records
 
@@ -223,35 +221,36 @@ DNS resource records are text records that are stored in DNS servers and retriev
 
 Common DNS resource record types are listed in Table 1.3. The resource records used by SIP are discussed in detail in the following sections.
 
+Table 1.3	Common DNS Resource Record Types
+
+| RR Type | Reference | Description                                        |
+| ------- | --------- | -------------------------------------------------- |
+| A       | RFC 1035  | Address IPv4 (see Section 1.5.2)                   |
+| AAAA    | RFC 3596  | Address IPv6 (see Section 1.5.2)                   |
+| CNAME   | RFC 1035  | Canonical name, used for aliases                   |
+| MX      | RFC 1035  | Mail Exchange                                      |
+| NAPTR   | RFC 2915  | Naming Authority Pointer Record, See Section 1.5.4 |
+| NS      | RFC 1035  | Name Server records                                |
+| PTR     | RFC 1035  | Reverse domain name lookup                         |
+| SOA     | RFC 1035  | Start of Authority                                 |
+| SPF     | RFC 4408  | Sender Policy Framework for Authorizing E-mail     |
+| SRV     | RFC 2782  | Services (see Section 1.5.3)                       |
+| TXT     | RFC 1035  | Text records                                       |
+
 ### 1.5.2	Address Resource Records (A or AAAA)
 
 The most common type of resource record is an address record. As the name suggests, it provides an address for a resource or a host name. Besides the name, TTL, class, and type fields it includes a target field, which is an IP address. An A record provides [17] an IPv4 address, while an AAAA record [19] provides an IPv6 address. An AAAA record is usually called a “quad A” record.
 
 Structure:
 
+```ini
 Name TTL Class A Target
+```
 
-For example,
-
-Table 1.3
-
-Common DNS Resource Record Types
-
-RR Type	Reference	Description
-A	RFC 1035	Address IPv4 (see Section 1.5.2)
-AAAA	RFC 3596	Address IPv6 (see Section 1.5.2)
-CNAME	RFC 1035	Canonical name, used for aliases
-MX	RFC 1035	Mail Exchange
-NAPTR	RFC 2915	Naming Authority Pointer Record, See Section 1.5.4
-NS	RFC 1035	Name Server records
-PTR	RFC 1035	Reverse domain name lookup
-SOA	RFC 1035	Start of Authority
-SPF	RFC 4408	Sender Policy Framework for Authorizing E-mail
-SRV	RFC 2782	Services (see Section 1.5.3)
-TXT	RFC 1035	Text records
-ese.wustl.edu.
+For example, 
 
 ```ini
+ese.wustl.edu.
 3600 IN A 128.252.168.2 ietf.org.
 300 IN AAAA 2610:a0:c779:b::d1ad:35b4
 ```
@@ -260,17 +259,21 @@ are examples of an A record and an AAAA record. Notice the “.” used after th
 
 ### 1.5.3	Service Resource Records (SRV)
 
-Service resource records or SRV records [20] are used to lookup a host that provides a particular service. A number of services have been defined for SRV records including SIP service. SRV records use an underscore ( _ ) in the service name to distinguish it from normal host names, which may not include an underscore.
+Service resource records or SRV records [20] are used to lookup a host that provides a particular service. A number of services have been defined for SRV records including SIP service. SRV records use an underscore ( `_` ) in the service name to distinguish it from normal host names, which may not include an underscore.
 
 Structure:
 
+```ini
 Service.Proto.Name TTL Class SRV Priority Weight Port Target
+```
 
 The priority field is used to set the relative priority of this record, as an SRV query might return several SRV resource records. The priority is a 16-bit unsigned integer. Resolvers should use the lowest value record (highest priority). The weight is a relative weight used to select between records with the same priority. It is also a 16-bit unsigned integer. The port is the transport port number that should be used for this service. This allows multiple instances of the same service to be run on the same host—each can utilize a different port number. The target is the domain name of the host. To reach the desired service, the target address and port number should be used.
 
 For example,
 
+```ini
 _sip._udp.example.com. 300 IN SRV 0 100 5060 sip.example.com.
+```
 
 This example resource record is for SIP service using UDP as the transport protocol. The priority of this record is 0, indicating that it is the highest priority. The port number is 5060, the registered port for SIP. The target is sip. example.org, which will require an address (A or AAAA) lookup to resolve to an IP address. The use of SRV records in SIP will be discussed in Section 2.6.
 
