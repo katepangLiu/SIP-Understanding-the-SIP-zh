@@ -4,15 +4,167 @@ The client-server nature of SIP has been introduced in the example message flows
 
 ##	3.1	SIP User Agents
 
+A SIP-enabled end device is called a SIP user agent (UA) [^1]. One purpose of SIP is to enable sessions to be established between user agents. As the name implies, a user agent takes direction or input from a user and acts as an agent on their behalf to set up and tear down media sessions with other user agents. In most cases the user will be a human, but the user could also be another protocol, as in the case of a gateway (described in Section 3.4). A UA must be capable of establishing a media session with another UA.
+
+A UA must maintain the state on calls that it initiates or participates in. A minimum call state set includes the local and remote tags, Call-ID, local and remote CSeq header fields, along with the route set and any state information necessary for the media. This information is used to store the dialog information and for reliability. The remote CSeq storage is necessary to distinguish between a new request and a retransmission of an old request. A re-INVITE is used to change the session parameters of an existing or pending call. It uses the same Call-ID and tags as the original INVITE/200 OK exchange, but the CSeq is incremented because it is a new request. A retransmitted INVITE will contain the same Call-ID and CSeq as a previous INVITE. Even after a call has been terminated, the call state must be maintained by a user agent for at least 32 seconds in case of lost messages in the call tear down.
+
+User agents silently discard an ACK for an unknown dialog. Requests to an unknown URI receive a 404 Not Found response. A user agent receiving a request for an unknown dialog responds with a 481 Dialog/Transaction Does Not Exist. Responses from an unknown dialog are also silently discarded. These silent discards are necessary for security. Otherwise, a malicious user agent could gain information about other SIP user agents by spamming fake requests or responses.
+
+A minimal implementation must to be able to interpret any unknown response based on the class (first digit of the number) of the response, but it is not required to understand every response code defined. That is, if an undefined 498 Wrong Phase of the Moon response is received, it must be treated as a 400 Client Error.
+
+A user agent responds to an unsupported request with a 501 Not Implemented response. For example, a UA receiving a method that it does not support would return a 501 response. A SIP UA must support UDP and TCP transport if it sends messages greater than 1,000 octets in size.
+
+A SIP user agent contains both a client application and a server application. The two parts are a user agent client (UAC) and user agent server (UAS). The UAC initiates requests while the UAS generates responses. During a session, a user agent will usually operate as both a UAC and a UAS.
+
+A SIP user agent must also support Session Description Protocol (SDP) for media description. Other types of media description protocols can be used in bodies, but SDP support is mandatory. Details of SDP are in Section 13.1.
+
+A UA must understand any extensions listed in a Require header field in a request. Unknown header fields may be ignored by a UA. A UA should advertise its capabilities and features in any request it sends. This allows other UAs to learn them without having to make an explicit capabilities query. For example, the methods that a UA supports should be listed in an Allow header field. SIP extensions should be listed in a Supported header field. Message body types that are supported should be listed in an Accept header field.
+
+UAs typically register with a proxy server in their domain.
+
 ## 3.2	Presence Agents
+
+A presence agent (PA) [^2] is a SIP UA that is capable of receiving subscription requests and generating state notifications as defined by the SIP Events specification [^3]. An example of a presence agent can be found in Section 3.4. A presence agent supports the presence event package, responds to SUBSCRIBE requests, and sends NOTIFY requests. A presence agent also sometimes publishes event state to an event state compositor (ESC) using PUBLISH requests, as described in Section 4.1.9.
+
+A presence agent can collect presence information from a number of devices. Presence information can come from a SIP device registering, a SIP device publishing presence information [^4], or many other non-SIP sources.
+
+A presence server is also a presence UA that can supply presence information about a number of users and can also act as a proxy, forwarding SUBSCRIBE requests to another presence agents.
+
+A presence agent first authenticates a subscription request. If the authentication passes, it establishes a dialog and sends the notifications over that dialog. The subscription can be refreshed by receiving new SUBSCRIBE requests.
+
+Chapter 8 has a complete description of presence agents
 
 ## 3.3	Back-to-Back User Agents
 
+A back-to-back user agent (B2BUA) is a type of SIP UA that receives a SIP request, then reformulates the request and sends it out as a new request. As such, some B2BUAs act like a proxy but do not follow proxy routing rules. For example, a B2BUA device can be used to implement an anonymizer service in which two SIP UAs can communicate without either party learning the other party’s URI, IP address, or other information. To achieve this, an anonymizer B2BUA would reformulate an incoming request with an entirely new From, Via, Contact, Call-ID, and SDP media information, also removing any other SIP header fields that might contain information about the calling party. The response returned would also change the Contact and SDP media information from the called party. The modified SDP would point to the B2BUA itself, which would forward RTP media packets from the called party to the calling party and vice versa. In this way, neither end point learns any identifying information about the other party during the session establishment. (Of course, the calling party needs to know the called party’s URI in order for the call to take place.)
+
+Sometimes B2BUAs are employed to implement other SIP services. However, they break the end-to-end nature of an Internet protocol such as SIP. Also, a B2BUA is a call-stateful single point of failure in a network, which means their use will reduce the reliability of SIP sessions over the Internet. The relayed media suffers from increased latency and increased probability of packet loss, which can reduce the quality of the media session. Geographic distribution of B2BUAs can reduce these effects, but the problem of selecting the best B2BUA for a particular session is a very difficult one since the source and destination IP addresses of the media are not known until the session is actually established (with a 200 OK).
+
+B2BUAs can be a part of many devices. For example, many private branch exchange (PBX) enterprise telephone systems incorporate B2BUA logic. Conference bridges and mixers also use B2BUA logic. Another type of B2BUA present in some SIP networks is application layer gateways (ALG). Some firewalls have ALG functionality built in, which allows a firewall to permit SIP and media traffic while still maintaining a high level of security. Another common type of B2BUA is known as a Session Border Controller (SBC). Some common functions of a SBC are listed in Table 3.1 [^5]. Note that many of these functions break the end-to-end security properties of SIP and SIP security.
+
+| Topology Hiding              | Hiding all internal IP addresses to conceal internal topology |
+| ---------------------------- | ------------------------------------------------------------ |
+| Media Traffic Management     | Controlling which media types and codecs are used            |
+| Fixing Capability Mismatches | Ensuring interop when multiple ways of implementing features happens (e.g., transfer with REFER or 3PCC) |
+| Maintaining NAT Mappings     | Keeping SIP-related UDP NAT Mappings alive                   |
+| Access Control               | Authenticating and challenging requests.                     |
+| Protocol Repair              | Fixing known SIP interoperability failures in devices        |
+| Media Encryption             | Allows SRTP in external network but RTP in internal network  |
+
 ## 3.4	SIP Gateways
+
+![image-20220313132808685](images/image-20220313132808685.png)
+
+In Figure 3.1, the SIP network, PSTN network, and H.323 networks are shown as clouds, which obscure the underlying details. Connecting to the SIP cloud are SIP IP telephones, SIP-enabled PCs, and corporate SIP gateways with attached telephones. The clouds are connected by gateways. H.323 terminals and H.323-enabled PCs are attached to the H.323 network. The PSTN cloud connects to ordinary analog black telephones (called because of the original color of their shell), digital ISDN telephones, and corporate private branch exchanges (PBXs). PBXs connect to the PSTN using shared trunks and provide line interfaces for either analog or digital telephones.
+
+Gateways are sometimes decomposed into a media gateway (MG) and a media gateway controller (MGC). An MGC is sometimes called a call agent because it manages call control protocols (signaling), while the MG manages the media connection. This decomposition is transparent to SIP; the protocols used to decompose a gateway are described in Section 11.3.
+
+Another difference between a user agent and a gateway is the number of users supported. While a user agent typically supports a single user (although perhaps with multiple lines), a gateway can support hundreds or thousands of users. A PSTN gateway could support a large corporate customer, or an entire geographic area. As a result, a gateway does not REGISTER every user it supports in the same way that a user agent might. Instead, a non-SIP protocol can be used to inform proxies about gateways and assist in routing. One protocol that has been proposed for this is Telephony Routing over IP (TRIP) [^7], which allows an interdomain routing table of gateways to be developed. In addition, there is an extension to the REGISTER method that allows a gateway to register multiple phone numbers [8] with a registrar server within a domain.
 
 ## 3.5	SIP Servers
 
+SIP servers are applications that accept SIP requests and respond to them. A SIP server should not be confused with a user agent server or the client-server nature of the protocol, which describe operation in terms of clients (originators of requests) and servers (originators of responses to requests). A SIP server is a different type of entity; the types of SIP servers discussed in this section are logical entities. Actual SIP server implementations may contain a number of server types or may operate as a different type of server under different conditions. Because servers provide services and features to user agents, they must support both TCP and UDP for transport. Figure 3.2 shows the interaction of user agents, servers, and a location service. Note that the protocol used between a server and the location service or database is generally not SIP and is not discussed in this book.
+
+![image-20220313134546054](images/image-20220313134546054.png)
+
 ###	3.5.1	Proxy Servers
+
+A SIP proxy server receives a SIP request from a user agent or another proxy and acts on behalf of the user agent in forwarding or responding to the request. Just as a router forwards IP packets at the IP layer, a SIP proxy forwards SIP messages at the application layer. A proxy is not a B2BUA since it is only allowed to modify requests and responses according to strict rules set out in RFC 3261. These rules preserve the end-to-end transparency of the SIP signaling while still allowing a proxy server to perform valuable services and functions for user agents.
+
+A proxy server typically has access to a database or a location service to aid it in processing the request (determining the next hop). The interface between the proxy and the location service is not defined by the SIP protocol. A proxy can use any number of types of databases to aid in processing a request. Databases could contain SIP registrations, presence information, or any other type of information about where a user is located. The example in Figure 2.2 introduced a proxy server as a facilitator of SIP message exchange, providing user location services to the caller.
+
+A proxy does not need to understand a SIP request in order to forward it—any unknown request type is assumed to use the non-INVITE transaction model. A proxy should not change the order of header fields or in general modify or delete header fields.
+
+A proxy server is different from a user agent or gateway in three key ways:
+
+1. A proxy server does not issue requests; it only responds to requests from a user agent. (CANCEL and ACK requests are an exception to this rule.)
+
+2. A proxy server has no media capabilities.
+
+3. A proxy server does not parse message bodies; it relies exclusively on SIP header fields.
+
+Figure 3.3 shows a common network topology known as the SIP Trapezoid. 
+
+![image-20220313135137456](images/image-20220313135137456.png)
+
+In this topology, a pair of user agents in different domains establishes a session using a pair of proxy servers, one in each domain. The trapezoid refers to the shape formed by the signaling and media messages. In this configuration, each user agent is configured with a default outbound proxy server, to which it sends all requests. This proxy server typically will authenticate the user agent and may pull up a profile of the user and apply outbound routing services. In an interdomain exchange, DNS SRV queries will be used to locate a proxy server in the other domain. This proxy, sometimes called an inbound proxy, may apply inbound routing services on behalf of the called party. This proxy also has access to the current registration information for the user, and can route the request to the called party. In general, future SIP requests will be sent directly between the two user agents, unless one or both proxies insert a Record-Route header field.
+
+A proxy server can be either stateless or stateful. A stateless proxy server processes each SIP request or response based solely on the message contents. Once the message has been parsed, processed, and forwarded or responded to, no information (such as dialog information) about the message is stored. A stateless proxy never retransmits a message, and does not use any SIP timers. Note that the stateless loop detection using Via header fields described in RFC 2543 has been deprecated (removed) in RFC 3261 in favor of the use of a mandatory Max-Forwards header field in all requests.
+
+A stateful proxy server keeps track of requests and responses received in the past and uses that information in processing future requests and responses. For example, a stateful proxy server starts a timer when a request is forwarded. If no response to the request is received within the timer period, the proxy will retransmit the request, relieving the user agent of this task. Also, a stateful proxy can require user agent authentication, as described in Chapter 15.
+
+The most common type of SIP proxy is a transaction stateful proxy. A transaction stateful proxy keeps state about a transaction but only for the duration of the pending request. For example, a transaction stateful proxy will keep state when it receives an INVITE request until it receives a 200 OK or a final failure response (e.g., 404 Not Found). After that, it would destroy the state information. This allows a proxy to perform useful search services but minimize the amount of state storage required.
+
+One such example of a search service is a proxy server that receives an INVITE request, then forwards it to a number of locations at the same time, or forks the request. This forking proxy server keeps track of each of the outstanding requests and the response to each, as shown in Figure 3.4. This is useful if the location service or database lookup returns multiple possible locations for the called party that need to be tried.
+
+![image-20220313135259927](images/image-20220313135259927.png)
+
+In the example of Figure 3.4, the INVITE contains:
+
+```ini
+INVITE sip:support@chaos.example.org SIP/2.0
+Via: SIP/2.0/UDP 45.2.32.1:5060 ;branch=z9hG4bK67865
+Max-Forwards: 70
+To: <sip:support@chaos.example.org>
+From: A. N. Sarkovskii <sip:sarkovskii@45.2.32.1>;tag=7643545
+Call-ID: 0140092501
+CSeq: 1 INVITE
+Subject: Bifurcation Question
+Contact: <sip:sarkovskii@45.2.32.1>
+Content-Type: application/sdp
+Content-Length: ...
+
+(SDP not shown)
+```
+
+The INVITE is received by the chaos.info proxy server, which forks to two user agents. Each user agent begins alerting, sending two provisional responses back to Sarkovskii. They are:
+
+```ini
+SIP/2.0 180 Ringing
+
+Via: SIP/2.0/UDP 45.2.32.1:5060;branch=z9hG4bK67865
+To: <sip:support@chaos.example.org>;tag=343214112
+From: A. N. Sarkovskii <sip:sarkovskii@45.2.32.1>;tag=7643545
+Call-ID: 0140092501
+CSeq: 1 INVITE
+Contact: <sip:agent42@67.42.2.1>
+Content-Length: 0
+```
+
+and: 
+
+```ini
+SIP/2.0 180 Ringing
+Via: SIP/2.0/UDP 45.2.32.1:5060;branch=z9hG4bK67865
+To: <sip:support@chaos.example.org>;tag=a5ff34d9ee201
+From: A. N. Sarkovskii <sip:sarkovskii@45.2.32.1>;tag=7643545
+Call-ID: 0140092501
+CSeq: 1 INVITE Contact: <sip:agent7@67.42.2.32>
+Content-Length: 0
+```
+
+The two responses are identical except for having different To tags and Contact URIs. Finally, one of the two UAs answers and sends a 200 OK response:
+
+```ini
+SIP/2.0 200 OK
+Via: SIP/2.0/UDP 45.2.32.1:5060;branch=z9hG4bK67865
+To: <sip:support@chaos.example.org>;tag=343214112
+From: A. N. Sarkovskii <sip:sarkovskii@45.2.32.1>;tag=7643545
+Call-ID: 0140092501
+CSeq: 1 INVITE Contact: <sip:agent42@67.42.2.1>
+Content-Type: application/sdp
+Content-Length: ...
+
+(SDP not shown)
+```
+
+The forking proxy server sends a CANCEL to the second UA to stop that phone alerting. If both UAs had answered, the forking proxy would have forwarded both 200 OK responses back to the caller who then would have had to choose which one, most likely by accepting one and sending a BYE to the other.
+
+A stateful proxy usually sends a 100 Trying response when it receives an INVITE. A stateless proxy never sends a 100 Trying response. A 100 Trying response received by a proxy is never forwarded—it is a single hop only response. A proxy handling a TCP request must be stateful, since a user agent will assume reliable transport and rely on the proxy for retransmissions on any UDP hops in the signaling path(TCP usually provides end-to-end reliability for applications. In SIP, however, TCP only provides single-hop reliability. End-to-end reliability is only achieved by a chain of TCP hops or TCP hops interleaved with UDP hops and stateful proxies.).
+
+The only limit to the number of proxies that can forward a message is controlled by the Max-Forwards header field, which is decremented by each proxy that touches the request. If the Max-Forwards count goes to zero, the proxy discards the message and sends a 483 Too Many Hops response back to the originator.
+
+The SIP session timer extension [^9] limits the time period over which a stateful proxy must maintain state information without a refresh re-INVITE. In the initial INVITE request, a Session-Expires header field indicates a timer interval after which stateful proxies may discard state information about the session. User agents must tear down the call after the expiration of the timer. The caller can send re-INVITEs to refresh the timer, enabling a “keep alive” mechanism for SIP. This solves the problem of how long to store state information in cases where a BYE request is lost or misdirected or in other security cases described in later sections. The details of this implementation are described in Section 6.2.35.
 
 ### 3.5.2	Redirect Servers
 
