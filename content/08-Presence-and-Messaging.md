@@ -34,13 +34,15 @@ Watcher User Agent:	Renders presence information received to the user
 
 ![image-20220407193007536](images/image-20220407193007536.png)
 
-
-
-### 8.3	SIMPLE
+## 8.3	SIMPLE
 
 In 2001, the IETF chartered a new working group to develop SIP standards and extensions for instant messaging and presence. Over the years, a set of specifications and protocols have been developed, with a few still under development. The standards for presence are summarized in Table 8.3. An overview specification is known as “SIMPLE made simple” [3], which describes how all these protocols work together.
 
-**SIMPLE Presence Specifications**
+###	8.4	Presence with SIMPLE
+
+This section will cover presence with SIMPLE. The specifications are summarized in Tables 8.3 and 8.4.
+
+**Tables 8.3	SIMPLE Presence Specifications**
 
 ```ini
 RFC 6665	SIP Events [4]:	Defines SUBSCRIBE and NOTIFY usage with SIP
@@ -69,19 +71,7 @@ RFC 5875	XCAP Diff [26]
 RFC 6914	SIMPLE made simple [3]
 ```
 
-### 8.4.3	SIP Event Framework
-
-The SIP events framework [4] defines the SUBSCRIBE and NOTIFY methods, as described in Sections 4.1.7 and 4.1.8. SUBSCRIBE is used to establish a dialog and ongoing association between two UAs. In the presence architecture of Figure 8.2, the watcher sends the SUBSCRIBE request to the presentity. If the subscription is authorized, the presentity will send NOTIFYs whenever the state of the presentity changes, and at regular intervals. The basic call flow was shown in Figure 4.5.
-
-SIP events allow any number of event packages to be defined. Table 4.8 lists common SIP event packages. For presence, the presence package is used, which also uses the application/xml+presence MIME type. This XML format is used to convey the presence state in NOTIFYs.
-
-
-
-### 8.4.2	Presence Bodies
-
-Presence information is conveyed using SIP message bodies in XML (Extensible Markup Language) format. The basic presence document is known as Presence Information Data Format (PIDF) [12] and is shown here:
-
-**SIMPLE Instant Messaging Specifications**
+**Tables 8.4	SIMPLE Instant Messaging Specifications**
 
 ```ini
 RFC 3428	SIP extensions for IM [27]:	Defines MESSAGE method for page mode IM
@@ -95,6 +85,20 @@ RFC 5438	IMDN [33]:	IM Disposition Notification
 Draft	MSRP Multiparty Chat [34]	
 RFC 6174	Media anchoring with MSRP [35]
 ```
+
+
+
+### 8.4.1	SIP Event Framework
+
+The SIP events framework [4] defines the SUBSCRIBE and NOTIFY methods, as described in Sections 4.1.7 and 4.1.8. SUBSCRIBE is used to establish a dialog and ongoing association between two UAs. In the presence architecture of Figure 8.2, the watcher sends the SUBSCRIBE request to the presentity. If the subscription is authorized, the presentity will send NOTIFYs whenever the state of the presentity changes, and at regular intervals. The basic call flow was shown in Figure 4.5.
+
+SIP events allow any number of event packages to be defined. Table 4.8 lists common SIP event packages. For presence, the presence package is used, which also uses the application/xml+presence MIME type. This XML format is used to convey the presence state in NOTIFYs.
+
+
+
+### 8.4.2	Presence Bodies
+
+Presence information is conveyed using SIP message bodies in XML (Extensible Markup Language) format. The basic presence document is known as Presence Information Data Format (PIDF) [12] and is shown here:
 
 ```ini
 <?xml version=”1.0” encoding=”UTF-8”?>
