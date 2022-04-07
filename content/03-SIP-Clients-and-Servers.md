@@ -168,17 +168,185 @@ The SIP session timer extension [^9] limits the time period over which a statefu
 
 ### 3.5.2	Redirect Servers
 
+A redirect server was introduced in Figure 2.6 as a type of SIP server that responds to, but does not forward, requests. Like a proxy server, a redirect server uses a database or location service to look up a user. However, the location information is sent back to the caller in a redirection class response (3xx), which, after the ACK, concludes the transaction. Figure 3.5 shows a call flow that is very similar to the example in Figure 3.2, except the server uses redirection instead of proxying to assist Schrodinger in locating Heisenberg.
+
+The INVITE from Figure 3.5 contains:
+
+```ini
+INVITE sip:werner.heisenberg@munich.de.example.org SIP/2.0
+Via: SIP/2.0/UDP 100.101.102.103:5060 ;branch=z9hG4bK54532
+Max-Forwards: 70
+To: Heisenberg <sip:werner.heisenberg@munich.de.example.org>
+From: E. Schrodinger <sip:schroed5244@wave.example.org>;tag=4313413
+Call-ID: 734224912341371927319032
+CSeq: 1 INVITE
+Subject: Where are you exactly?
+Contact: <sip:schroed5244@pc33.wave.example.org>
+Content-Type: application/sdp
+Content-Length: 150
+
+v=0
+o=schroed5244 2890844526 2890844526 IN IP4 100.101.102.103
+s=
+t=0 0
+c=IN IP4 100.101.102.103
+m=audio 49172 RTP/AVP 0
+a=rtpmap:0 PCMU/8000
+```
+
+![image-20220407160033645](images/image-20220407160033645.png)
+
+The redirection response to the INVITE is sent by the redirect server:
+
+```ini
+SIP/2.0 302 Moved Temporarily
+Via: SIP/2.0/UDP 100.101.102.103:5060;branch=z9hG4bK54532
+To: Heisenberg <sip:werner.heisenberg@munich.de.example.org>;tag=052500
+From: E. Schrodinger <sip:schroed5244@wave.example.org>;tag=4313413
+Call-ID: 734224912341371927319032
+CSeq: 1 INVITE
+Contact: sip:werner.heisenberg@200.201.202.203
+Content-Length: 0
+```
+
+Schrodinger acknowledges the response:
+
+```ini
+ACK sip:werner.heisenberg@munich.de.example.org SIP/2.0
+Via: SIP/2.0/UDP 100.101.102.103:5060;branch=z9hG4bK54532
+Max-Forwards: 70
+To: Heisenberg <sip:werner.heisenberg@munich.de.example.org>;tag=052500
+From: E. Schrodinger <sip:schroed5244@wave.example.org>;tag=4313413
+Call-ID: 734224912341371927319032
+CSeq: 1 ACK
+Content-Length: 0
+```
+
+Notice that the ACK request reuses the same branch ID as the INVITE and the 302 response. This is because an ACK to a non-2xx final response is considered to be part of the same transaction as the INVITE. Only an ACK sent in response to a 200 OK is considered a separate transaction with a unique branch ID. Also, an ACK to a non-2xx final response is a hop-by-hop response, not an end-to-end response as discussed in Section 3.6.
+
+This exchange completes this call attempt, so a new INVITE is generated with a new Call-ID and sent directly to the location obtained from the Contact header field in the 302 response from the redirect server.
+
+```ini
+INVITE sip:werner.heisenberg@200.201.202.203 SIP/2.0
+Via: SIP/2.0/UDP 100.101.102.103:5060;branch=z9hG4bK92313
+Max-Forwards: 70
+To: Heisenberg <sip:werner.heisenberg@munich.de.example.org>
+From: E. Schrodinger <sip:schroed5244@wave.example.org>;tag=13473
+Call-ID: 54-67-45-23-13
+CSeq: 1 INVITE Subject: Where are you exactly?
+Contact: <sip:schroed5244@pc33.wave.example.org>
+Content-Type: application/sdp 
+Content-Length: 150
+
+v=0
+o=schroed5244 2890844526 2890844526 IN IP4 100.101.102.103
+s=
+t=0 0
+c=IN IP4 100.101.102.103
+m=audio 49172 RTP/AVP 0
+a=rtpmap:0 PCMU/8000
+```
+
+The call then proceeds in the same way as Figure 3.2, with the messages being identical. Note that in Figure 3.5, a 180 Ringing response is not sent; instead, the 200 OK response is sent right away. Since 1xx informational responses are optional, this is a perfectly valid response by the UAS if Heisenberg responded to the alerting immediately and accepted the call. In the PSTN, this scenario is called fast answer.
+
 ### 3.5.3	Register Servers
+
+A SIP registrar server was introduced in the example of Figure 3.3. A registrar server, also known as a registration server, accepts SIP REGISTER requests; all other requests receive a 501 Not Implemented response. The contact information from the request is then made available to other SIP servers within the same administrative domain, such as proxies and redirect servers. In a registration request, the To header field contains the name of the resource being registered, and the Contact header fields contain the contact or device URIs. The registration server creates a temporary binding between the address of record (AOR) URI in the To and the device URI in the Contact header field.
+
+Registration servers usually require the registering user agent to be authenticated, using the means described in Chapter 15, so that incoming calls cannot be hijacked by an unauthorized user. This could be accomplished by an unauthorized user registering someone else’s SIP URI to point to his or her own UA. Incoming calls to that URI would then ring the wrong UA. Depending on the header fields present, a REGISTER request can be used by a user agent to retrieve a list of current registrations, clear all registrations, or add a registration URI to the list. These types of requests are described in Section 4.1.2.
+
+There are a number of ways in which a proxy may know to fork a request to a set of UAs. One way is through manual configuration, such as entering the information in a Web page or database. Another way is to have multiple registrations for the same AOR. If multiple UAs register against the same AOR, the proxy can fork an incoming request to all of them. The priority of multiple registrations is governed by the q-value included in the Contact header field. For contacts of the same priority, a proxy can fork the request to all of them at the same time. For contacts with different priorities, a proxy can do sequential forking, sending the request in the order specified by the q-values.
+
+For full registration security, TLS must be used as HTTP digest does not provide the needed integrity protection. Otherwise, an attacker can modify the Contact URI in an authenticated REGISTER to point to another UA.
 
 ## 3.6	Uniform Resource Indicators
 
+SIP uses a number of Uniform Resource Identifiers. Common URIs are shown in Table 3.2.
+
+SIP URIs will be discussed in Section 4.2. SIPS will be covered in Chapter 15. Telephony URI is covered in Section 4.2.2. Presence and IM URIs are covered in Chapter 8, along with the XMPP URI. H.323 URIs are covered in Section 11.4. Web URIs are defined in [10].
+
+SIP uses Uniform Resource Indicators or URIs for most addresses. URIs and URLs were introduced in Section 1.4. For SIP, the URI scheme is either sip for a normal SIP URI or sips for a Secure SIP URI. Secure SIP means that a SIP message sent using this URI will be protected using TLS across each hop. SIP URIs must contain either a host name or an IP address. They usually contain a user part, although they do not have to. For example, a URI for a proxy server typically will not have a user part. URIs also may contain parameters. SIP URI parameters are listed in Table 3.3. In this table, URI means any valid URI while URN means any valid URN.
+
+​                                      **Table 3.2	Common URIs Used with SIP**
+
+| URI   | Use               | Specification |
+| ----- | ----------------- | ------------- |
+| sip   | SIP               | RFC 326       |
+| sips  | Secure SIP        | RFC 3261      |
+| tel   | Telephony         | RFC 3966      |
+| pres  | Presence          | RFC 3861      |
+| im    | Instant Messaging | RFC 3861      |
+| xmpp  | XMPP(Jabber)      | RFC 4622      |
+| h323  | H.323             | RFC 3508      |
+| http  | Web               | RFC 7540      |
+| https | Secure Web        | RFC 2818      |
+
+​								**Table 3.3	SIP URI Parameters**
+
+![image-20220407160832261](images/image-20220407160832261.png)
+
+The following is a list of some examples of SIP URIs.
+
+```ini
+sip:fred@flintstone.example.org
+sip:vilma@flintstone.example.org;transport=tcp
+sip:the%20great%one@whalers.example.org
+sip:7325551212@gw.gateway.com.example.org
+sip:192.0.3.4:44352
+sip:proxy34.sipstation.com.example.com
+sip:r3.example.com;lr
+sip:+43321232;user=phone@sp.serviceprovider.example.org
+```
+
+SIP URIs can also be used to encoded telephone numbers. Sometimes, this includes the user=phone parameter.
+
 ## 3.7	Acknowledgment of Messages
+
+Most SIP requests are end-to-end messages between user agents. Proxies between the two user agents simply forward the messages they receive and rely on the user agents to generate acknowledgments or responses.
+
+There are some exceptions to this general rule. The CANCEL method (used to terminate pending calls or searches and discussed in detail in Section 4.1.5) is a hop-by-hop request. A proxy receiving a CANCEL immediately sends a 200 OK response back to the sender and generates a new CANCEL, which is then forwarded in the next hop to the same set of destinations as the original request. (The order of sending the 200 OK and forwarding the CANCEL is not important.) This is shown in Figure 3.4.
+
+Other exceptions to this rule include 3xx, 4xx, 5xx, and 6xx responses to an INVITE request. While an ACK to a 2xx response is generated by the end point, a 3xx, 4xx, 5xx, or 6xx response is acknowledged on a hop-by-hop basis. A proxy server receiving one of these responses immediately generates an ACK back to the sender and forwards the response to the next hop. This type of hop-by-hop acknowledgment is shown in Figure 4.2.
+
+ACK messages are only sent to acknowledge responses to INVITE requests. For responses to all other request types, there is no acknowledgment. A lost response is detected by the UAS when the request is retransmitted.
 
 ## 3.8	Reliability
 
+SIP has reliability mechanisms defined, which allow the use of unreliable transport layer protocols such as UDP. When SIP uses TCP, these mechanisms are not used, since it is assumed that TCP will retransmit the message if it is lost and inform the client if the server is unreachable.
+
+For SIP transport using UDP, there is always the possibility of messages being lost or even received out of sequence, because UDP guarantees only that the datagram is error free. A UAS validates and parses a SIP request to make sure that the UAC has not errored by creating a request missing required header fields or other syntax violations. Reliability mechanisms in SIP include:
+
+- Retransmission timers;
+
+- Increasing command sequence CSeq numbers;
+
+- Positive acknowledgments.
+
+How SIP handles retransmissions depends on the method. One retransmission scheme is defined for INVITEs, known as INVITE transactions, and another is defined for all other methods, known as a non-INVITE transaction.
+
+For non-INVITE transactions, a SIP timer, T1, is started by a UAC or a stateful proxy server when a new request is generated or sent. If no response to the request (as identified by a response containing the identical local tag, remote tag, Call-ID, and CSeq) is received when T1 expires, the request is resent. After a request is retransmitted, the next timer period is doubled until T2 is reached. If a provisional (informational class 1xx) response is received, the UAC or stateful proxy server immediately switches to timer T2. After that, the remaining retransmissions occur at T2 intervals. This capped exponential backoff process is continued until a 64*T1, after which the request is declared dead. A stateful proxy server that receives a retransmission of a request discards the retransmission and continues its retransmission schedule based on its own timers. Typically, it will resend the last provisional response. This retransmission scheme for non-INVITE is shown in Figure 3.6 for a REFER request.
+
+For an INVITE transaction, the retransmission scheme is slightly different. INVITEs are retransmitted starting at T1, and then the timer is doubled after each retransmission. The INVITE is retransmitted until 64*T1 after which the request is declared dead. After a provisional (1xx) response is received, the INVITE is never retransmitted. This retransmission scheme is shown in Figure 3.7. A proxy may discard the transaction state after 3 minutes. A stateful proxy must store a forwarded request or generated response message for 32 seconds. Suggested default values for T1 and T2 are 500 ms and 4 seconds, respectively. Timer T1 is supposed to be an estimate of the roundtrip time (RTT) in the network. Longer values are allowed, but not shorter ones, because this will generate more message retransmissions. See Table 4 in RFC 3261 [1] for a summary of SIP timers.
+
+![image-20220407162723020](images/image-20220407162723020.png)
+
+Note that gaps in CSeq number do not always indicate a lost message. In the authentication examples, not every request (and hence CSeq) generated by the UAC will reach the UAS if authentication challenges occur by proxies in the path.
+
 ## 3.9	Multicast Support
 
+SIP support for UDP multicast has been mentioned in previous sections. There are two main uses for multicast in SIP.
+
+SIP registration can be done using multicast, by sending the REGISTER message to the well-known “All SIP Servers” URI sip:sip.mcast.net at IP address 224.0.1.75 for IPv4. The ttl parameter is usually set to 1 to indicate that only a single hop should be used.
+
+![image-20220407162806262](images/image-20220407162806262.png)
+
+RFC 2543 defined sending other SIP messages, including INVITE, over multicast. However, this was not included in RFC 3261 and is no longer considered standard SIP.
+
+The use of a multicast address is indicated by the maddr parameter in a URI or in a SIP message using the maddr parameter in the Via header field.
+
 ## 3. 10	Conclusion
+
+This chapter introduced SIP clients and servers, discussing user agents, gateways, proxies, redirect servers, and registrars. SIP URIs, reliability, and retransmissions were also covered.
 
 ## 3.11	Questions
 
