@@ -8,11 +8,23 @@ This chapter will cover presence and instant messaging (IM) with SIP. First the 
 
 Presence is the ability to sense the willingness of another user to communicate. Instant messaging (IM) is a way of exchanging short text messages in near-real time. Presence is often used to determine when another user is available in order to start an instant message exchange. Instant messages are usually sent when the user hits the enter key or when the user clicks a send button. Often, messages are grouped together in a window and shown in sequential order, turning it into a conversation.
 
-A very early presence tool over TCP/IP was the Unix finger command. Finger allowed a user to look up information about another user, which often included information about the last time the user logged in and the last time mail was read. A very early IM client used on the Internet was known as ICQ (pronounced like “I seek you”) [1]. The first version was released in 1996. It provided basic instant messaging between users. America Online’s AOL Instant Messenger (AIM) was the first widely used instant messaging and presence application [2]. It was released in 1997 and quickly became popular. It introduced the concept of a “buddy list” or a contact list of other users, which is displayed in a small window. Note that this contact list is stored in the network, allowing the user to have access to the contact list regardless of which computer or device from which they log in. This user interface is common to nearly all IM systems today. Many other IM clients and systems have been developed, and nearly all are proprietary closed systems. This has resulted in the development of multi-headed clients that present a common user interface and contact list to the user, but log the user into a number of separate systems on the back end.
+A very early presence tool over TCP/IP was the Unix finger command. Finger allowed a user to look up information about another user, which often included information about the last time the user logged in and the last time mail was read. 
 
-To address IM and interoperability, the IETF standardized two IM and presence protocols. One was a set of SIP extensions known as SIMPLE (SIP for Instant Messaging Leveraging Extensions). The other was XMPP (Extensible Messaging and Presence Protocol), which is based on the Jabber open source client. SIMPLE is covered in Section 8.3.4, while XMPP/Jabber is described in Section 8.6. Today, both SIMPLE and XMPP are used to interconnect various closed IM systems. The instant messaging architecture is shown in Figure 8.1 and its elements are in Tables 8.1 and 8.2. Both of these systems are built on top of a basic architecture for instant messaging and presence, which is shown in Figures 8.1 and 8.2.
+A very early IM client used on the Internet was known as ICQ (pronounced like “I seek you”) [1]. The first version was released in 1996. It provided basic instant messaging between users. 
 
-**Instant Messaging Elements**
+America Online’s AOL Instant Messenger (AIM) was the first widely used instant messaging and presence application [2]. It was released in 1997 and quickly became popular. It introduced the concept of a “buddy list” or a contact list of other users, which is displayed in a small window. Note that this contact list is stored in the network, allowing the user to have access to the contact list regardless of which computer or device from which they log in. This user interface is common to nearly all IM systems today. 
+
+Many other IM clients and systems have been developed, and nearly all are proprietary closed systems. This has resulted in the development of multi-headed clients that present a common user interface and contact list to the user, but log the user into a number of separate systems on the back end.
+
+To address IM and interoperability, the IETF standardized two IM and presence protocols. 
+
+- One was a set of SIP extensions known as SIMPLE (SIP for Instant Messaging Leveraging Extensions). 
+
+- The other was XMPP (Extensible Messaging and Presence Protocol), which is based on the Jabber open source client. 
+
+SIMPLE is covered in Section 8.3.4, while XMPP/Jabber is described in Section 8.6. Today, both SIMPLE and XMPP are used to interconnect various closed IM systems. The instant messaging architecture is shown in Figure 8.1 and its elements are in Tables 8.1 and 8.2. Both of these systems are built on top of a basic architecture for instant messaging and presence, which is shown in Figures 8.1 and 8.2.
+
+**Table 8.1	Instant Messaging Elements**
 
 ```ini
 Instant Messaging Service:	Protocol used to transport IMs
@@ -22,7 +34,7 @@ Sender User Agent:	User Interface for gathering IM contents from user
 Inbox User Agent:	User Interface for rendering IM to user
 ```
 
-**Presence Elements**
+**Table 8.2	Presence Elements**
 
 ```ini
 Presence Service:	Protocol used to transport presence information
@@ -32,7 +44,13 @@ Watcher:	Requests and receives presence information from Presence Service
 Watcher User Agent:	Renders presence information received to the user
 ```
 
-![image-20220407193007536](images/image-20220407193007536.png)
+**Figure 8.1	IM architecture**
+
+![image-20220418194457915](images/image-20220418194457915.png)
+
+**Figure 8.2	Presence architecture**
+
+![image-20220418194555902](images/image-20220418194555902.png)
 
 ## 8.3	SIMPLE
 
