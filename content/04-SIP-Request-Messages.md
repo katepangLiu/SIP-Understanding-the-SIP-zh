@@ -8,7 +8,9 @@ SIP requests or methods are considered “verbs” in the protocol, since they r
 
 A user agent (UA) receiving a method it does not support replies with a 501 Not Implemented response. Method names are case-sensitive and conventionally use all uppercase for visual clarity to distinguish them from header fields, which use both uppercase and lowercase. Note that a proxy does not need to understand a request method in order to forward the request. A proxy treats an unknown method as if it were an OPTIONS; that is, it forwards the request to the destination if it can. This allows new features and methods useful for user agents to be introduced without requiring support from proxies that may be in the middle. UAs should indicate which methods they support in an Allow header field in requests and responses.
 
-## 4.1.1	INVITE
+
+
+### 4.1.1	INVITE
 
 The INVITE method is used to establish media sessions between user agents. In telephony, it is similar to a Setup message in ISDN or an initial address message (IAM) in ISUP. (PSTN protocols are briefly introduced in Section 11.1.) Responses to INVITEs are always acknowledged with the ACK method described in Section 4.1.4. Examples of the use of the INVITE method are described in Chapter 2.
 
@@ -55,6 +57,51 @@ a=rtpmap:0 PCMU/8000
 In addition to the required headers, this request contains the optional Subject and Allow header fields. Note that this Request-URI contains a phone number. Phone number support in SIP URIs is described in Section 4.2.
 
 The mandatory and header fields in an INVITE request are shown in Table 4.1.
+
+**Table 4.1	Mandatory Header Fields in an INVITE**
+
+```ini
+Via
+To
+From
+Call-ID
+CSeq
+Contact
+Max-Forwards
+```
+
+
+
+### 4.1.2 REGISTER
+
+The REGISTER method is used by a UA to notify a SIP network of its current Contact URI (IP address) and the URI that should have requests routed to this Contact. As mentioned in Section 3.5.3, SIP registration bears some similarity to cell phone registration on initialization. Registration is not required to enable a user agent to use a proxy server for outgoing calls. However, it is necessary for a user agent to register to receive incoming calls from proxies that serve that domain, unless some non-SIP mechanism is used by the location service to populate the SIP URIs and Contacts of end points. 
+
+A REGISTER request may contain a message body, although its use is not defined in the standard. Depending on the use of the Contact and Expires headers in the REGISTER request, the registrar server will take different actions. Examples of this are shown in Table 4.2. If no expires parameter or Expires header is present, a SIP URI will expire in 1 hour. The presence of an Expires header sets the expiration of Contacts with no expires parameter. If an expires parameter is present, it sets the expiration time for that Contact only. Non-SIP URIs have no default expiration time.
+
+The CSeq is incremented for a REGISTER request. The use of the Request-URI, To, From, and Call-ID headers in a REGISTER request is slightly different than for other requests. The Request-URI contains only the domain of the registrar server with no user portion. The REGISTER request may be forwarded or proxied until it reaches the authoritative registrar server for the specified domain. The To header contains the SIP URI of the address of record (AOR) of the user agent that is being registered. The From contains the SIP URI of the sender of the request, usually the same as the To header. It is recommended that the same Call-ID be used for all registrations by a user agent.
+
+A user agent sending a REGISTER request may receive a 3xx redirection or 4xx failure response containing a Contact header of the location to which registrations should be sent.
+
+**Table 4.2	Example Registration Contact URIs**
+
+![image-20220418201436669](images/image-20220418201436669.png)
+
+A third-party registration occurs when the party sending the registration request is not the party that is being registered. In this case, **the From header will contain the URI of the party submitting the registration on behalf of the party identified in the To header**. Chapter 2 contains an example of a first-party registration. An example third-party registration request for the user Euclid is shown here:
+
+```ini
+REGISTER sip:registrar.athens.example.com SIP/2.0
+Via: SIP/2.0/UDP 201.202.203.204:5060;branch=z9hG4bK313
+Max-Forwards:70
+To: sip:euclid@athens.example.com
+From: <sip:secretary@academy.athens.example.com>;tag=543131
+Call-ID: 48erl8132409wqer
+CSeq: 1 REGISTER
+Contact: sip:euclid@parthenon.athens.example.com
+Contact: mailto:euclid@geometry.example.org
+Content-Length: 0
+```
+
+In some cases, the Contact URI provided by a UA in a registration may not be routable. For example, if the UA is behind a NAT, or if a firewall is configured to block incoming requests from arbitrary hosts. If this Contact URI is used outside a SIP dialog (for example, in sending a REFER or performing attended transfer), then call control operations might fail. An extension mechanism has been developed in which a UA can request from a registrar a Globally Routable User Agent URI (GRUU) [^2]. This URI can be used in Contact header fields and other places the device wants to be directly reachable. A UA includes a Supported:gruu header field in a REGISTER request and a sip. instance feature tag, and if the registrar supports the mechanism, a GRUU will be returned in the 200 OK to the register in the pub-gruu and temp-gruu Contact header field parameters. The temp-gruu changes each time a registration is refreshed, while the pub-gruu is valid as long as the registration is refreshed. An example Contact header field containing a GRUU is shown here:
 
 
 
