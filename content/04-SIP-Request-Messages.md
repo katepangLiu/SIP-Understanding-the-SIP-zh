@@ -1,4 +1,4 @@
-# 4	SPI Request Messages
+# 4	SIP Request Messages
 
 This chapter covers the types of SIP requests called methods. Six are described in the SIP specification document RFC 3261 [1]. Eight more methods are described in separate RFC documents. After discussing the methods, this chapter concludes with a discussion of SIP URLs and URIs, tags, and message bodies.
 
